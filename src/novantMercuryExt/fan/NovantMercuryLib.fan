@@ -64,5 +64,73 @@ const class NovantMercuryLib
   {
     NovantMercuryExt.cur.syncHis(proxies, range)
   }
+
+//////////////////////////////////////////////////////////////////////////
+// Fix Tags
+//////////////////////////////////////////////////////////////////////////
+
+  **
+  ** Fixup tag names for previous installations by renaming all
+  ** 'novantXXX' tags -> 'novantMercuryXXX'. THe argument to this
+  ** method is one or more conectors, and this method will manage
+  ** recursively updating all associated points.
+  **
+  @NoDoc @Axon { admin = true }
+  static Void novantMercuryFixTags(Obj conns)
+  {
+    cx := Context.cur
+    Etc.toRecs(conns).each |conn|
+    {
+      fixTags(conn, cx)
+      points := cx.proj.readAll("point and novantConnRef == $conn.id.toCode")
+      points.each |p| { fixTags(p, cx) }
+    }
+  }
+
+  private static Void fixTags(Dict rec, Context cx)
+  {
+    mod := Str:Obj?[:]
+    rec.each |v,n|
+    {
+      if (n.startsWith("novant") && !n.startsWith("novantMercury"))
+      {
+        suffix := n["novant".size..-1]
+        mod[n] = Remove.val
+        mod["novantMercury${suffix}"] = v
+      }
+    }
+    if (mod.size > 0) cx.proj.commit(Diff(rec, mod))
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Unfix tags
+//////////////////////////////////////////////////////////////////////////
+
+  @NoDoc @Axon { admin = true }
+  static Void novantMercuryUnfixTags(Obj conns)
+  {
+    cx := Context.cur
+    Etc.toRecs(conns).each |conn|
+    {
+      unfixTags(conn, cx)
+      points := cx.proj.readAll("point and novantMercuryConnRef == $conn.id.toCode")
+      points.each |p| { unfixTags(p, cx) }
+    }
+  }
+
+  private static Void unfixTags(Dict rec, Context cx)
+  {
+    mod := Str:Obj?[:]
+    rec.each |v,n|
+    {
+      if (n.startsWith("novantMercury"))
+      {
+        suffix := n["novantMercury".size..-1]
+        mod[n] = Remove.val
+        mod["novant${suffix}"] = v
+      }
+    }
+    if (mod.size > 0) cx.proj.commit(Diff(rec, mod))
+  }
 }
 

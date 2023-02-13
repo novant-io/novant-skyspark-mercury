@@ -1,7 +1,8 @@
-# Novant Connector for SkySpark
+# Novant Mercury Connector for SkySpark
 
-The novantMercuryExt implements [SkySpark](https://skyfoundry.com) connector
-support for the [Novant](https://novant.io) Smart Building PaaS.
+The `novantMercuryExt` implements [SkySpark](https://skyfoundry.com) connector
+support for the [Novant](https://novant.io) legacy Mercury platform.  See
+[this page](https://github.com/novant-io/novant-skyspark) for Apollo support.
 
 ## Installing
 
