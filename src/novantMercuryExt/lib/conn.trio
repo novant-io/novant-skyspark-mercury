@@ -7,28 +7,23 @@
 //
 
 --------------------------------------------------------------------------
-def: ^novantConn
+def: ^novantMercuryConn
 is: ^conn
 doc:
-  Novant connector.
+  Novant mercury connector.
 --------------------------------------------------------------------------
-def: ^novantDeviceId
+def: ^novantMercuryDeviceId
 is: ^str
-tagOn: ^novantConn
+tagOn: ^novantMercuryConn
 --------------------------------------------------------------------------
 def: ^apiKey
 is: ^password
-tagOn: ^novantConn
+tagOn: ^novantMercuryConn
 --------------------------------------------------------------------------
-def: ^novantSyncFreq
-is: ^str
-enum: ["none", "daily"]
-tagOn: ^novantConn
---------------------------------------------------------------------------
-def: ^novantHisInterval
+def: ^novantMercuryHisInterval
 is: ^str
 enum: ["1min", "5min", "15min"]
-tagOn: ^novantConn
+tagOn: ^novantMercuryConn
 doc:
   Interval of trend data synced from Novant.
 --------------------------------------------------------------------------

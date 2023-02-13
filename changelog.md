@@ -1,6 +1,10 @@
 # Changelog
 
-## Version 0.23 (working)
+## Version 0.24 (working)
+* Rename `novantExt` -> `novantMercuryExt`
+* Drop auto-his-sync behavoir; require jobs for his syncs
+
+## Version 0.23 (unreleased)
 * Bump `minSyncTime` to `05:00` to avoid DST issues
 
 ## Version 0.22 (25-Apr-2022)

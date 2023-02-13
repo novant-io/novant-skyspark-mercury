@@ -4,6 +4,7 @@
 //
 // History:
 //   18 Nov 2019   Andy Frank   Creation
+//   13 Feb 2023   Andy Frank   novantExt -> novantMercuryExt
 //
 
 using connExt
@@ -14,7 +15,7 @@ using web
 **
 ** NovantConn
 **
-class NovantConn : Conn
+class NovantMercuryConn : Conn
 {
 
 //////////////////////////////////////////////////////////////////////////
@@ -25,11 +26,10 @@ class NovantConn : Conn
 
   override Obj? receive(ConnMsg msg)
   {
-    NovantExt ext := ext
+    NovantMercuryExt ext := ext
     switch (msg.id)
     {
-      case "nvSync": ext.syncActor.dispatchSync(this, msg.a, msg.b); return null
-      default:       return super.receive(msg)
+      default: return super.receive(msg)
     }
   }
 
@@ -64,7 +64,7 @@ class NovantConn : Conn
       pointIds := StrBuf()
       points.each |p|
       {
-        id := p.rec["novantCur"]
+        id := p.rec["novantMercuryCur"]
         if (id != null) pointIds.join(id, ",")
       }
 
@@ -74,7 +74,7 @@ class NovantConn : Conn
 
       // TODO: can this be cached somewhere?
       map := Str:ConnPoint[:]
-      points.each |p| { map.set(p.rec["novantCur"], p) }
+      points.each |p| { map.set(p.rec["novantMercuryCur"], p) }
 
       // update curVals
       Obj[] data := res["data"]
@@ -122,7 +122,7 @@ class NovantConn : Conn
       if (pri > 16) pri = 16
 
       // issue write
-      pid := point.rec["novantWrite"]
+      pid := point.rec["novantMercuryWrite"]
       client.write(deviceId, pid, fval, pri)
 
       // update ok
@@ -135,10 +135,29 @@ class NovantConn : Conn
 // His
 //////////////////////////////////////////////////////////////////////////
 
-  override Obj? onSyncHis(ConnPoint point, Span span)
+  override Obj? onSyncHis(ConnPoint p, Span span)
   {
-    // onSyncHis is a no-op; all his sync is handled internally
-    null
+    try
+    {
+      // get args
+      pid := p.rec["novantMercuryHis"] ?: throw Err("Missing novantMercuryHis tag")
+      int := p.rec["novantMercuryHisInterval"]
+      tz  := TimeZone(p.rec["tz"])
+
+      // iterate span by date to request trends
+      items := HisItem[,]
+      span.eachDay |date|
+      {
+        client.trendsEach(deviceId, pid, date, int, tz) |ts,val|
+        {
+          // skip 'null' and 'na' vals
+          pval := NovantUtil.toConnPointVal(p, val, false)
+          if (pval != null) items.add(HisItem(ts, pval))
+        }
+      }
+      return p.updateHisOk(items, span)
+    }
+    catch (Err err) { return p.updateHisErr(err) }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,7 +168,7 @@ class NovantConn : Conn
   {
     gb := GridBuilder()
     gb.addColNames([
-      "dis","learn","point","pointAddr","kind","novantCur","novantWrite","novantHis","unit"
+      "dis","learn","point","pointAddr","kind","novantMercuryCur","novantMercuryWrite","novantMercuryHis","unit"
     ])
 
     // cache points results for 1min
@@ -201,8 +220,8 @@ class NovantConn : Conn
   private DateTime lastValuesTs := DateTime.defVal
 
   internal Bool isDisabled() { rec["disabled"] != null }
-  internal Str deviceId()    { rec->novantDeviceId }
-  internal Str hisInterval() { rec["novantHisInterval"] ?: "15min" }
+  internal Str deviceId()    { rec->novantMercuryDeviceId }
+  internal Str hisInterval() { rec["novantMercuryHisInterval"] ?: "15min" }
   internal Duration hisIntervalDur() { Duration.fromStr(hisInterval) }
 
   ** TimeZone for this device (assume all points are same tz).
@@ -212,7 +231,7 @@ class NovantConn : Conn
   }
 
   ** Get an authenicated NovantClient instance.
-  internal NovantClient client()
+  internal NovantMercuryClient client()
   {
     // in 3.1.3 passwords now get stored using {id tagName}, so we
     // need to lookup with qualified key, otherwise fallback to
@@ -223,6 +242,6 @@ class NovantConn : Conn
     if (apiKey == null) rec->apiKey
     if (apiKey == null) throw ArgErr("apiKey not found")
 
-    return NovantClient(apiKey)
+    return NovantMercuryClient(apiKey)
   }
 }

@@ -4,6 +4,7 @@
 //
 // History:
 //   18 Nov 2019   Andy Frank   Creation
+//   13 Feb 2023   Andy Frank   novantExt -> novantMercuryExt
 //
 
 using haystack
@@ -13,17 +14,16 @@ using connExt
 ** NovantModel
 **
 @Js
-const class NovantModel : ConnModel
+const class NovantMercuryModel : ConnModel
 {
-  new make() : super(NovantModel#.pod)
+  new make() : super(NovantMercuryModel#.pod)
   {
     connProto = Etc.makeDict([
-      "dis":            "Novant Conn",
-      "novantConn":     Marker.val,
-      "novantDeviceId": "dv_",
-      "apiKey":         "ak_",
-      "novantSyncFreq": "daily",
-      "novantHisInterval": "15min",
+      "dis":                      "Novant Mercury Conn",
+      "novantMercuryConn":        Marker.val,
+      "novantMercuryDeviceId":    "dv_",
+      "apiKey":                   "ak_",
+      "novantMercuryHisInterval": "15min",
     ])
   }
 

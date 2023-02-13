@@ -4,6 +4,7 @@
 //
 // History:
 //   12 Nov 2021  Andy Frank  Creation
+//   13 Feb 2023   Andy Frank   novantExt -> novantMercuryExt
 //
 
 using util
@@ -12,7 +13,7 @@ using web
 **
 ** NovantClient
 **
-class NovantClient
+class NovantMercuryClient
 {
   ** Constructor.
   new make(Str apiKey) { this.apiKey = apiKey }
@@ -73,6 +74,19 @@ class NovantClient
 
     // TODO FIXIT: we need a streaming JsonReader here
     return invoke("trends", args)
+  }
+
+  ** Request trend date for given date. Throws 'IOErr' if request fails.
+  Void trendsEach(Str deviceId, Str pointId, Date date, Str? interval, TimeZone tz, |DateTime,Obj?| f)
+  {
+    trends := this.trends(deviceId, pointId, date, interval)
+    List data := trends["data"]
+    data.each |Map tr|
+    {
+      ts  := DateTime.fromIso(tr["ts"]).toTimeZone(tz)
+      val := tr[pointId]
+      f(ts, val)
+    }
   }
 
   ** Invoke API request or throw IOErr if error.

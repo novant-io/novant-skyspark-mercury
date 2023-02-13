@@ -7,33 +7,33 @@
 //
 
 --------------------------------------------------------------------------
-def: ^novantPoint
+def: ^novantMercuryPoint
 is: ^connPoint
 doc:
   Point which synchronizes data via the Novant connector.
 --------------------------------------------------------------------------
 def: ^novantConnRef
 is: ^ref
-of: ^novantConn
-tagOn: ^novantPoint
+of: ^novantMercuryConn
+tagOn: ^novantMercuryPoint
 doc:
   Used on a proxy point to reference its parent `novantConn`
 --------------------------------------------------------------------------
-def: ^novantCur
+def: ^novantMercuryCur
 is: ^str
-tagOn: ^novantPoint
+tagOn: ^novantMercuryPoint
 doc:
   Novant address to use for reading the current value.
 --------------------------------------------------------------------------
-def: ^novantWrite
+def: ^novantMercuryWrite
 is: ^str
-tagOn: ^novantPoint
+tagOn: ^novantMercuryPoint
 doc:
   Novant address to use for writing the current value.
 --------------------------------------------------------------------------
-def: ^novantHis
+def: ^novantMercuryHis
 is: ^str
-tagOn: ^novantPoint
+tagOn: ^novantMercuryPoint
 doc:
   Novant address to use for reading historical data.
 --------------------------------------------------------------------------

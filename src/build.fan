@@ -8,7 +8,7 @@ class Build : BuildGroup
   {
     childrenScripts =
     [
-      `novantExt/build.fan`,
+      `novantMercuryExt/build.fan`,
     ]
   }
 }

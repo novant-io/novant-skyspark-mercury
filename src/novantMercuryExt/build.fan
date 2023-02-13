@@ -16,8 +16,8 @@ class Build : BuildPod
 {
   new make()
   {
-    podName = "novantExt"
-    summary = "Novant Connector"
+    podName = "novantMercuryExt"
+    summary = "Novant Mercury Connector"
     version = Version("0.23")
     meta    = [
                 "org.name":     "Novant LLC",
@@ -39,15 +39,14 @@ class Build : BuildPod
                "connExt 3.1",
                "ui 3.1"]
     srcDirs = [`fan/`,
-               `fan/ui/`,
                `test/`]
     resDirs = [`locale/`,
                `lib/`,
                `svg/`]
     index   =
     [
-      "skyarc.ext": "novantExt::NovantExt",
-      "skyarc.lib": "novantExt::NovantLib",
+      "skyarc.ext": "novantMercuryExt::NovantMercuryExt",
+      "skyarc.lib": "novantMercuryExt::NovantMercuryLib",
     ]
   }
 }
