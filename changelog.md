@@ -1,6 +1,8 @@
 # Changelog
 
-## Version 0.24 (working)
+## Version 0.25 (working)
+
+## Version 0.24 (13-Feb-2023)
 * Rename `novantExt` -> `novantMercuryExt`
 * Drop auto-his-sync behavoir; require jobs for his syncs
 
