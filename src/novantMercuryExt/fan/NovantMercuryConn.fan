@@ -141,7 +141,7 @@ class NovantMercuryConn : Conn
     {
       // get args
       pid := p.rec["novantMercuryHis"] ?: throw Err("Missing novantMercuryHis tag")
-      int := p.rec["novantMercuryHisInterval"]
+      int := hisInterval
       tz  := TimeZone(p.rec["tz"])
 
       // iterate span by date to request trends

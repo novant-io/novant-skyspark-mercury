@@ -1,6 +1,7 @@
 # Changelog
 
 ## Version 0.25 (working)
+* Fix `novantMercuryHisInterval` tag to work properly
 
 ## Version 0.24 (13-Feb-2023)
 * Rename `novantExt` -> `novantMercuryExt`
