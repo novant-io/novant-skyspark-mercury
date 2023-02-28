@@ -77,15 +77,18 @@ class NovantMercuryClient
   }
 
   ** Request trend date for given date. Throws 'IOErr' if request fails.
-  Void trendsEach(Str deviceId, Str pointId, Date date, Str? interval, TimeZone tz, |DateTime,Obj?| f)
+  Void trendsEach(Str deviceId, Str pointIds, Date date, Str? interval, TimeZone tz, |DateTime ts, Str id, Obj? v| f)
   {
-    trends := this.trends(deviceId, pointId, date, interval)
+    trends := this.trends(deviceId, pointIds, date, interval)
     List data := trends["data"]
     data.each |Map tr|
     {
-      ts  := DateTime.fromIso(tr["ts"]).toTimeZone(tz)
-      val := tr[pointId]
-      f(ts, val)
+      ts := DateTime.fromIso(tr["ts"]).toTimeZone(tz)
+      tr.each |v,k|
+      {
+        if (k == "ts") return
+        f(ts, k, v)
+      }
     }
   }
 

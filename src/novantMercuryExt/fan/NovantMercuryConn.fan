@@ -8,6 +8,7 @@
 //
 
 using connExt
+using folio
 using haystack
 using util
 using web
@@ -135,29 +136,115 @@ class NovantMercuryConn : Conn
 // His
 //////////////////////////////////////////////////////////////////////////
 
-  override Obj? onSyncHis(ConnPoint p, Span span)
+  override Obj? onSyncHis(ConnPoint p, Span origSpan)
+  {
+    // sanity check
+    if (p.rec["novantMercuryHis"] == null) throw Err("Missing novantMercuryHis tag")
+
+    // update status to pending
+    proj.commit(Diff(p.rec, pending, Diff.forceTransient))
+
+    // floor span to nearest minute to align queue keys
+    span := Span(floorTsMin(origSpan.start), floorTsMin(origSpan.end))
+
+    // queue for next sync
+    acc := hisSyncQueue[span] ?: ConnPoint[,]
+    if (acc.find |x| { x.id == p.id } == null) acc.add(p)
+    hisSyncQueue[span] = acc
+    return null
+  }
+
+  override Void onHouseKeeping()
   {
     try
     {
-      // get args
-      pid := p.rec["novantMercuryHis"] ?: throw Err("Missing novantMercuryHis tag")
-      int := hisInterval
-      tz  := TimeZone(p.rec["tz"])
+      // short-circuit if nothing to sync
+      if (hisSyncQueue.isEmpty) return
 
-      // iterate span by date to request trends
-      items := HisItem[,]
+      // iterate queue
+      hisSyncQueue.each |points, span| { doSyncHis(span, points) }
+    }
+    catch (Err err) { close(err) }
+    finally
+    {
+      // for now to be safe always flush queue
+      hisSyncQueue.clear
+    }
+  }
+
+  private Void doSyncHis(Span span, ConnPoint[] points)
+  {
+    try
+    {
+      pmap  := Str:ConnPoint[:]   // map of point_id:ConnPoint
+      refs  := Ref[,]             // list of backing rec ids
+      intv  := hisInterval        // trend interval for sync
+      hmap  := Str:HisItem[][:]   // map of point_id:HisItem[]
+      tz    := TimeZone(points.first.rec["tz"])  // points should have same tz
+      start := Duration.now
+
+      // update hisStatus to 'syncing'
+      points.each |p|
+      {
+        nid := p.rec["novantMercuryHis"]
+        pmap[nid] = p
+        refs.add(p.rec.id)
+        proj.commit(Diff(p.rec, syncing, Diff.forceTransient))
+      }
+
+      // refresh backing rec for each point (the conn.point.rec instance
+      // gets cached on conn.open; so we need to update to latest copy
+      // so we can inspect hisStar/hisEnd
+      recs := proj.readByIdsList(refs)
+      rmap := Ref:Dict[:].setList(recs) |r| { r.id }
+      pids := pmap.keys.join(",")
+
+      // sync span trends by day
       span.eachDay |date|
       {
-        client.trendsEach(deviceId, pid, date, int, tz) |ts,val|
+        log.info("syncHis [${date}] ...")
+        client.trendsEach(deviceId, pids, date, intv, tz) |ts,pid,val|
         {
           // skip 'null' and 'na' vals
-          pval := NovantUtil.toConnPointVal(p, val, false)
-          if (pval != null) items.add(HisItem(ts, pval))
+          pt   := pmap[pid]
+          pval := NovantUtil.toConnPointVal(pt, val, false)
+          if (pval == null) return
+
+          // skip ts if < hisEnd; must use rmap; see above
+          rec    := rmap[pt.rec.id]
+          hisEnd := rec["hisEnd"] as DateTime
+          if (hisEnd != null && ts <= hisEnd) return
+
+          // append his item
+          items := hmap[pid] ?: HisItem[,]
+          items.add(HisItem(ts, pval))
+          hmap[pid] = items
         }
       }
-      return p.updateHisOk(items, span)
+
+      // update his
+      pmap.each |pt,pid|
+      {
+        items := hmap[pid] ?: HisItem#.emptyList
+        pt.updateHisOk(items, span)
+      }
+
+      end := Duration.now
+      dur := (end - start).toLocale
+      log.info("syncHis OK: [${span}, ${points.size} points, ${dur}]")
     }
-    catch (Err err) { return p.updateHisErr(err) }
+    catch (Err err)
+    {
+      // if req fails mark all points in fault
+      points.each |p| { p.updateHisErr(err) }
+      log.err("syncHis failed: [${span}]", err)
+    }
+  }
+
+  private DateTime floorTsMin(DateTime orig)
+  {
+    t := Time(orig.hour, orig.min, 0)
+    return orig.date.toDateTime(t, orig.tz)
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -244,4 +331,9 @@ class NovantMercuryConn : Conn
 
     return NovantMercuryClient(apiKey)
   }
+
+  private static const Dict pending := Etc.makeDict(["hisStatus":"pending"])
+  private static const Dict syncing := Etc.makeDict(["hisStatus":"syncing"])
+
+  private Span:ConnPoint[] hisSyncQueue := [:]   // his sync queue
 }
