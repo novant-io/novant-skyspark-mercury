@@ -1,6 +1,8 @@
 # Changelog
 
-## Version 0.25 (working)
+## Version 0.26 (working)
+
+## Version 0.25 (28-Feb-2023)
 * Fix `novantMercuryHisInterval` tag to work properly
 * Rework `hisSync` to be async and batch up API requests
 
