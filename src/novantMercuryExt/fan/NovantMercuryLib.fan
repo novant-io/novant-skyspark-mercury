@@ -96,7 +96,7 @@ const class NovantMercuryLib
       {
         suffix := n["novant".size..-1]
         mod[n] = Remove.val
-        mod["novantMercury${suffix}"] = v
+        if (v != null) mod["novantMercury${suffix}"] = v
       }
     }
     if (mod.size > 0) cx.proj.commit(Diff(rec, mod))

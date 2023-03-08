@@ -1,6 +1,7 @@
 # Changelog
 
 ## Version 0.26 (working)
+* More fixes for `novantMercuryFixTags`
 
 ## Version 0.25 (28-Feb-2023)
 * Fix `novantMercuryHisInterval` tag to work properly
