@@ -1,6 +1,8 @@
 # Changelog
 
-## Version 0.26 (working)
+## Version 0.27 (working)
+
+## Version 0.26 (8-Mar-2023)
 * More fixes for `novantMercuryFixTags`
 
 ## Version 0.25 (28-Feb-2023)

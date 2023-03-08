@@ -18,7 +18,7 @@ class Build : BuildPod
   {
     podName = "novantMercuryExt"
     summary = "Novant Mercury Connector"
-    version = Version("0.26")
+    version = Version("0.27")
     meta    = [
                 "org.name":     "Novant LLC",
                 "license.name": "MIT",
